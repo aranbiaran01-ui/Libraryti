@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>پنل مدیریت کتابخانه</title>
+  <style>
+    body {
+      font-family: "B Nazanin", "IRANSans", sans-serif;
+      background-color: #f0f8ff;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #1976D2;
+      color: white;
+      text-align: center;
+      padding: 1.2rem;
+      font-size: 1.8rem;
+      position: relative;
+    }
+    .logout-btn {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      background: #e53935;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    /* تب‌های جدید برای مدیریت قفسه‌ها */
+    .panel-tabs {
+      text-align: center;
+      padding: 1rem;
+      background-color: #bbdefb;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    .panel-tabs button {
+      padding: 10px 20px;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 6px;
+      background-color: #2196F3;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .panel-tabs button.active {
+      background-color: #0d47a1;
+      font-weight: bold;
+      transform: translateY(-2px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .panel-tabs button:hover:not(.active) {
+      background-color: #1976D2;
+    }
+
+    /* بخش مدیریت قفسه‌ها */
+    .shelves-section {
+      background-color: #e8f5e9;
+      padding: 1.5rem;
+      margin: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: none;
+    }
+    .shelves-section.active {
+      display: block;
+    }
+    .shelves-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .shelf-card {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+      transition: transform 0.2s;
+    }
+    .shelf-card:hover {
+      transform: translateY(-3px);
+    }
+    .shelf-card h3 {
+      margin: 0 0 10px 0;
+      color: #2e7d32;
+    }
+    .shelf-card .book-count {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    .shelf-actions {
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+    .shelf-actions button {
+      padding: 4px 8px;
+      font-size: 0.85rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .delete-shelf-btn {
+      background: #f44336;
+      color: white;
+      border: none;
+    }
+
+    /* فرم افزودن قفسه */
+    .add-shelf-form {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #c8e6c9;
+      border-radius: 8px;
+    }
+    .add-shelf-form input {
+      padding: 10px 15px;
+      font-size: 1.1rem;
+      border: 1px solid #4caf50;
+      border-radius: 6px;
+      direction: rtl;
+      width: 250px;
+      margin-left: 10px;
+    }
+    .add-shelf-form button {
+      padding: 10px 20px;
+      font-size: 1.1rem;
+      background-color: #2e7d32;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .add-shelf-form button:hover {
+      background-color: #1b5e20;
+    }
+
+    /* فرم افزودن کتاب (به‌روزرسانی شده) */
+    .add-book-section {
+      background-color: #e3f2fd;
+      padding: 1.5rem;
+      text-align: center;
+      margin: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .add-book-section input,
+    .add-book-section select {
+      padding: 10px 15px;
+      font-size: 1.1rem;
+      border: 1px solid #90caf9;
+      border-radius: 6px;
+      margin: 0 10px;
+      direction: rtl;
+      min-width: 200px;
+    }
+    .add-book-section button {
+      padding: 10px 25px;
+      font-size: 1.1rem;
+      background-color: #0d47a1;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: background 0.3s;
+    }
+    .add-book-section button:hover {
+      background-color: #1565c0;
+    }
+
+    /* تب‌های فیلتر کتاب‌ها */
+    .tabs {
+      text-align: center;
+      padding: 1rem;
+      background-color: #bbdefb;
+    }
+    .tabs button {
+      margin: 0 10px;
+      padding: 10px 25px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 6px;
+      background-color: #2196F3;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .tabs button:hover {
+      background-color: #1976D2;
+    }
+    .tabs button.active {
+      background-color: #0d47a1;
+      font-weight: bold;
+    }
+
+    .search-box {
+      text-align: center;
+      padding: 1rem;
+      background-color: #e3f2fd;
+    }
+    .search-box input {
+      width: 80%;
+      max-width: 500px;
+      padding: 12px 15px;
+      font-size: 1.2rem;
+      border: 2px solid #2196F3;
+      border-radius: 6px;
+      outline: none;
+      direction: rtl;
+    }
+
+    .books-list {
+      padding: 1.5rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .books-list ul {
+      list-style: none;
+      padding: 0;
+    }
+    .books-list li {
+      background: white;
+      margin: 0.8rem 0;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: transform 0.2s;
+    }
+    .books-list li:hover {
+      transform: translateX(5px);
+    }
+    .book-title {
+      flex: 1;
+      font-size: 1.2rem;
+      padding-left: 15px;
+    }
+    .book-shelf {
+      background: #e3f2fd;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      margin-left: 10px;
+      color: #1565c0;
+    }
+    .book-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .book-actions button {
+      padding: 8px 15px;
+      font-size: 0.95rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      min-width: 70px;
+      font-weight: bold;
+    }
+    .edit-btn { background: #ff9800; color: white; }
+    .delete-btn { background: #f44336; color: white; }
+    .save-btn { background: #4caf50; color: white; }
+    .cancel-btn { background: #9e9e9e; color: white; }
+    .input-edit {
+      direction: rtl;
+      padding: 8px 12px;
+      font-size: 1.1rem;
+      border: 2px solid #2196F3;
+      border-radius: 5px;
+      width: 200px;
+      font-weight: bold;
+    }
+    .no-result {
+      text-align: center;
+      color: #e53935;
+      padding: 2rem;
+      font-size: 1.3rem;
+    }
+
+    .reload-section {
+      text-align: center;
+      padding: 1.5rem;
+    }
+    .reload-btn {
+      padding: 12px 30px;
+      font-size: 1.2rem;
+      background-color: #43a047;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .reload-btn:hover {
+      background-color: #388e3c;
+    }
+
+    .status-message {
+      text-align: center;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      display: none;
+    }
+    .success {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+    }
+    .error {
+      background-color: #ffebee;
+      color: #c62828;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    پنل مدیریت کتابخانه مدرسه
+    <a href="index.html" class="logout-btn" onclick="logout()">خروج</a>
+  </header>
+
+  <!-- تب‌های جدید برای مدیریت قفسه‌ها و کتاب‌ها -->
+  <div class="panel-tabs">
+    <button onclick="switchPanel('books')" id="tab-books" class="active">مدیریت کتاب‌ها</button>
+    <button onclick="switchPanel('shelves')" id="tab-shelves">مدیریت قفسه‌ها</button>
+  </div>
+
+  <!-- بخش مدیریت قفسه‌ها -->
+  <div class="shelves-section" id="shelves-section">
+    <div class="add-shelf-form">
+      <h2 style="margin: 0 0 15px 0; color: #1b5e20;">افزودن قفسه جدید</h2>
+      <input type="text" id="newShelfName" placeholder="نام قفسه جدید را وارد کنید" />
+      <button onclick="addNewShelf()">افزودن قفسه +</button>
+    </div>
+    
+    <h2 style="text-align: center; color: #2e7d32; margin-bottom: 15px;">قفسه‌های موجود</h2>
+    <div class="shelves-list" id="shelves-list">
+      <!-- قفسه‌ها اینجا نمایش داده می‌شوند -->
+    </div>
+  </div>
+
+  <!-- بخش مدیریت کتاب‌ها -->
+  <div class="add-book-section" id="books-section">
+    <h2 style="margin-top: 0; color: #0d47a1;">افزودن کتاب جدید</h2>
+    <input type="text" id="newBookTitle" placeholder="نام کتاب جدید را وارد کنید" />
+    <select id="newBookCategory">
+      <option value="all">همه</option>
+      <option value="h1">H1</option>
+    </select>
+    <select id="newBookShelf">
+      <!-- قفسه‌ها به صورت داینامیک اینجا اضافه می‌شوند -->
+    </select>
+    <br />
+    <button onclick="addNewBook()">افزودن کتاب جدید +</button>
+    <div class="status-message" id="statusMsg"></div>
+  </div>
+
+  <div class="tabs">
+    <button onclick="switchTab('all')" id="tab-all" class="active">همه کتاب‌ها</button>
+    <button onclick="switchTab('h1')" id="tab-h1">کتاب‌های H1</button>
+  </div>
+
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="نام کتاب را جستجو کنید..." oninput="updateList()" />
+  </div>
+
+  <div class="books-list">
+    <ul id="bookList"></ul>
+  </div>
+
+  <div class="reload-section">
+    <button class="reload-btn" onclick="reloadFromStorage()">بارگذاری مجدد از حافظه</button>
+  </div>
+
+  <script>
+    // کلید ذخیره‌سازی
+    const STORAGE_KEY = 'schoolLibraryData';
+    
+    // بارگذاری داده‌ها
+    function loadLibraryData() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.warn('داده‌های ذخیره‌شده نامعتبرند.');
+        }
+      }
+      
+      // داده‌های اولیه
+      return {
+        shelves: [
+          { id: 1, name: "همه کتاب‌ها", isDefault: true },
+          { id: 2, name: "داستان" },
+          { id: 3, name: "علمی" },
+          { id: 4, name: "شاعری" }
+        ],
+        books: [
+          { id: 1, title: "تاتار", category: "h1", shelfId: 2 },
+          { id: 2, title: "شاهنامه", category: "all", shelfId: 4 },
+          { id: 3, title: "گلستان", category: "all", shelfId: 4 },
+          { id: 4, title: "ماجراهای گربه سیاه", category: "all", shelfId: 2 },
+          { id: 5, title: "دن کیشوت", category: "all", shelfId: 2 },
+          { id: 6, title: "کلیله و دمنه", category: "all", shelfId: 2 },
+          { id: 7, title: "سفر به مرکز زمین", category: "all", shelfId: 3 }
+        ]
+      };
+    }
+
+    // ذخیره داده‌ها
+    function saveLibraryData(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    // متغیرهای جهانی
+    let libraryData = loadLibraryData();
+    let currentTab = 'all';
+    let editingId = null;
+    let currentPanel = 'books'; // 'books' یا 'shelves'
+
+    // نمایش پیام وضعیت
+    function showMessage(text, type) {
+      const msg = document.getElementById('statusMsg');
+      msg.textContent = text;
+      msg.className = `status-message ${type}`;
+      msg.style.display = 'block';
+      
+      setTimeout(() => {
+        msg.style.display = 'none';
+      }, 3000);
+    }
+
+    // تغییر پنل (کتاب‌ها یا قفسه‌ها)
+    function switchPanel(panel) {
+      currentPanel = panel;
+      
+      // به‌روزرسانی دکمه‌های فعال
+      document.getElementById('tab-books').classList.toggle('active', panel === 'books');
+      document.getElementById('tab-shelves').classList.toggle('active', panel === 'shelves');
+      
+      // نمایش/پنهان کردن بخش‌ها
+      document.getElementById('books-section').style.display = panel === 'books' ? 'block' : 'none';
+      document.getElementById('shelves-section').style.display = panel === 'shelves' ? 'block' : 'none';
+      
+      // به‌روزرسانی محتوا
+      if (panel === 'shelves') {
+        renderShelvesList();
+      } else {
+        updateList();
+      }
+    }
+
+    // رندر لیست قفسه‌ها
+    function renderShelvesList() {
+      const shelvesListEl = document.getElementById('shelves-list');
+      shelvesListEl.innerHTML = '';
+      
+      // فیلتر کردن قفسه پیش‌فرض (همه کتاب‌ها) از لیست قابل حذف
+      const shelvesToShow = libraryData.shelves.filter(shelf => !shelf.isDefault);
+      
+      if (shelvesToShow.length === 0) {
+        shelvesListEl.innerHTML = '<div style="text-align:center; padding:20px; color:#666">قفسه‌ای وجود ندارد</div>';
+        return;
+      }
+      
+      shelvesToShow.forEach(shelf => {
+        // شمارش تعداد کتاب‌ها در این قفسه
+        const bookCount = libraryData.books.filter(book => book.shelfId === shelf.id).length;
+        
+        const shelfCard = document.createElement('div');
+        shelfCard.className = 'shelf-card';
+        shelfCard.innerHTML = `
+          <h3>${shelf.name}</h3>
+          <div class="book-count">${bookCount} کتاب</div>
+          <div class="shelf-actions">
+            <button class="delete-shelf-btn" onclick="deleteShelf(${shelf.id})">حذف قفسه</button>
+          </div>
+        `;
+        shelvesListEl.appendChild(shelfCard);
+      });
+    }
+
+    // افزودن قفسه جدید
+    function addNewShelf() {
+      const shelfNameInput = document.getElementById('newShelfName');
+      const shelfName = shelfNameInput.value.trim();
+      
+      if (shelfName === '') {
+        showMessage('لطفاً نام قفسه را وارد کنید!', 'error');
+        return;
+      }
+      
+      // بررسی تکراری بودن نام
+      if (libraryData.shelves.some(shelf => shelf.name === shelfName)) {
+        showMessage('قفسه با این نام از قبل وجود دارد!', 'error');
+        return;
+      }
+      
+      // ساخت id جدید
+      const maxId = Math.max(...libraryData.shelves.map(s => s.id), 0);
+      
+      // افزودن قفسه جدید
+      libraryData.shelves.push({
+        id: maxId + 1,
+        name: shelfName
+      });
+      
+      // ذخیره تغییرات
+      saveLibraryData(libraryData);
+      
+      // پاک کردن فیلد ورودی
+      shelfNameInput.value = '';
+      
+      // به‌روزرسانی لیست
+      renderShelvesList();
+      
+      // پر کردن منوی کشویی قفسه‌ها در فرم کتاب
+      populateShelvesDropdown();
+      
+      showMessage('قفسه جدید با موفقیت اضافه شد!', 'success');
+    }
+
+    // حذف قفسه
+    function deleteShelf(shelfId) {
+      // پیدا کردن قفسه پیش‌فرض (همه کتاب‌ها)
+      const defaultShelf = libraryData.shelves.find(shelf => shelf.isDefault);
+      if (!defaultShelf) {
+        showMessage('خطا در پیدا کردن قفسه پیش‌فرض!', 'error');
+        return;
+      }
+      
+      // انتقال کتاب‌های این قفسه به قفسه پیش‌فرض
+      libraryData.books.forEach(book => {
+        if (book.shelfId === shelfId) {
+          book.shelfId = defaultShelf.id;
+        }
+      });
+      
+      // حذف قفسه
+      libraryData.shelves = libraryData.shelves.filter(shelf => shelf.id !== shelfId);
+      
+      // ذخیره تغییرات
+      saveLibraryData(libraryData);
+      
+      // به‌روزرسانی لیست
+      renderShelvesList();
+      populateShelvesDropdown();
+      
+      // اگر در پنل کتاب‌ها بودیم، لیست را به‌روز کن
+      if (currentPanel === 'books') {
+        updateList();
+      }
+      
+      showMessage('قفسه با موفقیت حذف و کتاب‌ها به قفسه پیش‌فرض منتقل شدند!', 'success');
+    }
+
+    // پر کردن منوی کشویی قفسه‌ها
+    function populateShelvesDropdown() {
+      const shelfDropdown = document.getElementById('newBookShelf');
+      shelfDropdown.innerHTML = '';
+      
+      libraryData.shelves.forEach(shelf => {
+        const option = document.createElement('option');
+        option.value = shelf.id;
+        option.textContent = shelf.name;
+        shelfDropdown.appendChild(option);
+      });
+    }
+
+    // تغییر تب فعال برای کتاب‌ها
+    function setActiveTab(tab) {
+      document.getElementById('tab-all').classList.toggle('active', tab === 'all');
+      document.getElementById('tab-h1').classList.toggle('active', tab === 'h1');
+    }
+
+    // تغییر تب نمایش کتاب‌ها
+    function switchTab(tab) {
+      currentTab = tab;
+      setActiveTab(tab);
+      updateList();
+    }
+
+    // به‌روزرسانی لیست کتاب‌ها
+    function updateList() {
+      if (currentPanel !== 'books') return;
+      
+      const query = document.getElementById('searchInput').value.trim().toLowerCase();
+      const listEl = document.getElementById('bookList');
+
+      let filtered = libraryData.books.filter(book => 
+        (currentTab === 'all' || book.category === currentTab)
+      );
+
+      if (query) {
+        filtered = filtered.filter(book => 
+          book.title.toLowerCase().includes(query)
+        );
+      }
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = '<li class="no-result">کتابی یافت نشد.</li>';
+        return;
+      }
+
+      let html = '';
+      filtered.forEach(book => {
+        // پیدا کردن نام قفسه
+        const shelf = libraryData.shelves.find(s => s.id === book.shelfId);
+        const shelfName = shelf ? shelf.name : 'نامشخص';
+        
+        if (editingId === book.id) {
+          html += `
+            <li>
+              <input type="text" class="input-edit" id="edit-${book.id}" value="${book.title}" />
+              <select id="edit-shelf-${book.id}" class="input-edit" style="width:150px; margin-left:10px;">
+                ${libraryData.shelves.map(s => `
+                  <option value="${s.id}" ${s.id === book.shelfId ? 'selected' : ''}>${s.name}</option>
+                `).join('')}
+              </select>
+              <div class="book-actions">
+                <button class="save-btn" onclick="saveBook(${book.id})">ذخیره</button>
+                <button class="cancel-btn" onclick="cancelEdit()">لغو</button>
+              </div>
+            </li>
+          `;
+        } else {
+          html += `
+            <li>
+              <span class="book-title">${book.title} 
+                <span class="book-shelf">${shelfName}</span>
+                <small style="color:#666; font-size:0.9rem">(${book.category === 'h1' ? 'H1' : 'همه'})</small>
+              </span>
+              <div class="book-actions">
+                <button class="edit-btn" onclick="editBook(${book.id})">ویرایش</button>
+                <button class="delete-btn" onclick="deleteBook(${book.id})">حذف</button>
+              </div>
+            </li>
+          `;
+        }
+      });
+
+      listEl.innerHTML = html;
+
+      if (editingId !== null) {
+        const input = document.getElementById(`edit-${editingId}`);
+        if (input) input.focus();
+      }
+    }
+
+    // افزودن کتاب جدید
+    function addNewBook() {
+      const titleInput = document.getElementById('newBookTitle');
+      const categorySelect = document.getElementById('newBookCategory');
+      const shelfSelect = document.getElementById('newBookShelf');
+      
+      const title = titleInput.value.trim();
+      const category = categorySelect.value;
+      const shelfId = parseInt(shelfSelect.value);
+
+      if (title === '') {
+        showMessage('لطفاً نام کتاب را وارد کنید!', 'error');
+        return;
+      }
+
+      // ساخت id جدید
+      const maxId = libraryData.books.length > 0 ? Math.max(...libraryData.books.map(b => b.id)) : 0;
+      
+      // افزودن کتاب جدید
+      libraryData.books.push({
+        id: maxId + 1,
+        title: title,
+        category: category,
+        shelfId: shelfId
+      });
+      
+      // ذخیره تغییرات
+      saveLibraryData(libraryData);
+      
+      // ریست فرم
+      titleInput.value = '';
+      titleInput.focus();
+      
+      showMessage('کتاب جدید با موفقیت اضافه شد!', 'success');
+      updateList();
+    }
+
+    // ویرایش کتاب
+    function editBook(id) {
+      editingId = id;
+      updateList();
+    }
+
+    function cancelEdit() {
+      editingId = null;
+      updateList();
+    }
+
+    function saveBook(id) {
+      const input = document.getElementById(`edit-${id}`);
+      const shelfSelect = document.getElementById(`edit-shelf-${id}`);
+      
+      const newTitle = input.value.trim();
+      const newShelfId = parseInt(shelfSelect.value);
+      
+      if (newTitle === '') {
+        showMessage('نام کتاب نمی‌تواند خالی باشد!', 'error');
+        return;
+      }
+
+      const book = libraryData.books.find(b => b.id === id);
+      if (book) {
+        book.title = newTitle;
+        book.shelfId = newShelfId;
+        saveLibraryData(libraryData);
+        showMessage('تغییرات با موفقیت ذخیره شد!', 'success');
+      }
+      
+      editingId = null;
+      updateList();
+    }
+
+    // حذف کتاب
+    function deleteBook(id) {
+      if (confirm('آیا از حذف این کتاب اطمینان دارید؟ این عمل غیرقابل بازگشت است!')) {
+        libraryData.books = libraryData.books.filter(book => book.id !== id);
+        saveLibraryData(libraryData);
+        showMessage('کتاب با موفقیت حذف شد!', 'success');
+        updateList();
+      }
+    }
+
+    // بارگذاری مجدد از حافظه
+    function reloadFromStorage() {
+      libraryData = loadLibraryData();
+      editingId = null;
+      
+      // به‌روزرسانی UI
+      populateShelvesDropdown();
+      if (currentPanel === 'shelves') {
+        renderShelvesList();
+      } else {
+        updateList();
+      }
+      
+      showMessage('داده‌ها از حافظه بارگذاری شدند!', 'success');
+    }
+
+    function logout() {
+      localStorage.removeItem('isAdminLoggedIn');
+    }
+
+    // بررسی دسترسی ادمین
+    if (localStorage.getItem('isAdminLoggedIn') !== 'true') {
+      alert('دسترسی غیرمجاز! لطفاً ابتدا وارد شوید.');
+      window.location.href = 'admin-login.html';
+    }
+
+    // راه‌اندازی اولیه
+    populateShelvesDropdown();
+    setActiveTab(currentTab);
+    
+    // اجرای توابع اولیه
+    window.onload = function() {
+      updateList();
+      renderShelvesList();
+    };
+  </script>
+
+</body>
+</html>
